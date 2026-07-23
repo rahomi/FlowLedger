@@ -1,0 +1,18 @@
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "webRoot": "dist",
+    "watchAssets": true,
+    "assets": [
+      {
+        "include": "**/*.md",
+        "watchAssets": true
+      }
+    ]
+  },
+  "generateOptions": {
+    "spec": true,
+    "flat": true
+  }
+}
