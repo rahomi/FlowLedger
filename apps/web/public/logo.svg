@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main logo shape - abstract flow/ledger concept -->
+  <path d="M50 50 L150 50 L130 80 L70 80 Z" fill="url(#flowGradient)" stroke="#4F46E5" stroke-width="2"/>
+  <path d="M60 90 L140 90 L120 120 L80 120 Z" fill="url(#flowGradient)" stroke="#4F46E5" stroke-width="2" opacity="0.8"/>
+  <path d="M70 130 L130 130 L110 160 L90 160 Z" fill="url(#flowGradient)" stroke="#4F46E5" stroke-width="2" opacity="0.6"/>
+
+  <!-- FlowLedger text -->
+  <text x="100" y="185" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2937" text-anchor="middle">FlowLedger</text>
+</svg>
