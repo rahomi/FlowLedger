@@ -1,6 +1,6 @@
 # FlowLedger - Offline-First Finance Manager
 
-![FlowLedger Logo](https://via.placeholder.com/150)  
+![FlowLedger Logo](https://raw.githubusercontent.com/rahomi/FlowLedger/master/apps/web/public/logo.svg)  
 
 **Offline-first personal and small-business finance manager with NestJS backend and React frontend.**
 

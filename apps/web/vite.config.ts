@@ -10,10 +10,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Finance Manager',
-        short_name: 'FinanceMgr',
+        name: 'FlowLedger',
+        short_name: 'FlowLedger',
         description: 'Offline-first personal and small-business finance manager',
-        theme_color: '#ffffff',
+        theme_color: '#4F46E5',
         icons: [
           {
             src: 'pwa-192x192.png',
