@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions } from 'typeorm';
+import { Repository, FindManyOptions, FindOneOptions, ILike } from 'typeorm';
 import { Profile } from '@finance-manager/db';
 import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto } from '@finance-manager/dto';
 import { PaginatedRequestDto } from '@finance-manager/dto';
@@ -29,9 +29,8 @@ export class ProfilesRepository {
 
     if (search) {
       options.where = [
-        { firstName: { $ilike: `%${search}%` } },
-        { lastName: { $ilike: `%${search}%` } },
-        { email: { $ilike: `%${search}%` } },
+        { name: ILike(`%${search}%`) },
+        { email: ILike(`%${search}%`) },
       ];
     }
 
@@ -97,14 +96,15 @@ export class ProfilesRepository {
   private mapToResponseDto(profile: Profile): ProfileResponseDto {
     return {
       id: profile.id,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: profile.email,
+      type: profile.type,
+      name: profile.name,
       phone: profile.phone || '',
+      email: profile.email || '',
       address: profile.address || '',
-      dateOfBirth: profile.dateOfBirth || null,
-      createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt,
+      description: profile.description || '',
+      notes: profile.notes || '',
+      createdAt: profile.createdAt.toISOString(),
+      updatedAt: profile.updatedAt.toISOString(),
     };
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions } from 'typeorm';
+import { Repository, FindManyOptions, FindOneOptions, ILike } from 'typeorm';
 import { Loan } from '@finance-manager/db';
 import { CreateLoanDto, LoanResponseDto, PaginatedResultDto } from '@finance-manager/dto';
 import { PaginatedRequestDto } from '@finance-manager/dto';
@@ -19,7 +19,7 @@ export class LoansRepository {
   }
 
   async findAll(query: PaginatedRequestDto): Promise<PaginatedResultDto<LoanResponseDto>> {
-    const { page = 1, limit = 10, search, sortBy, sortOrder, status } = query;
+    const { page = 1, limit = 10, search, sortBy, sortOrder } = query;
 
     const options: FindManyOptions<Loan> = {
       where: {},
@@ -29,13 +29,12 @@ export class LoansRepository {
 
     if (search) {
       options.where = [
-        { lender: { $ilike: `%${search}%` } },
-        { purpose: { $ilike: `%${search}%` } },
+        { description: ILike(`%${search}%`) },
       ];
     }
 
     if (status) {
-      options.where = { ...options.where, status };
+      options.where = { ...options.where, status: status as any };
     }
 
     if (sortBy && sortOrder) {
@@ -111,20 +110,17 @@ export class LoansRepository {
   private mapToResponseDto(loan: Loan): LoanResponseDto {
     return {
       id: loan.id,
-      accountId: loan.accountId,
-      accountType: loan.accountType,
-      lender: loan.lender,
-      amount: loan.amount,
-      currency: loan.currency,
-      interestRate: loan.interestRate,
-      termMonths: loan.termMonths,
-      startDate: loan.startDate,
-      endDate: loan.endDate,
+      type: loan.type,
+      principalAmount: loan.principalAmount,
+      paidAmount: loan.paidAmount,
+      startDate: loan.startDate.toISOString(),
+      dueDate: loan.dueDate?.toISOString(),
+      lenderProfileId: loan.lenderProfileId,
+      borrowerProfileId: loan.borrowerProfileId,
       status: loan.status,
-      purpose: loan.purpose,
-      notes: loan.notes || '',
-      createdAt: loan.createdAt,
-      updatedAt: loan.updatedAt,
+      description: loan.description,
+      createdAt: loan.createdAt.toISOString(),
+      updatedAt: loan.updatedAt.toISOString(),
     };
   }
 }

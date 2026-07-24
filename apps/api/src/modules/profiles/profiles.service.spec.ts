@@ -18,7 +18,7 @@ describe('ProfilesService', () => {
 
   const mockProfileResponse: ProfileResponseDto = {
     id: 'profile-1',
-    type: ProfileType.Personal,
+    type: ProfileType.Person,
     name: 'John Doe',
     phone: '1234567890',
     email: 'john@example.com',
@@ -59,7 +59,7 @@ describe('ProfilesService', () => {
   describe('create', () => {
     it('should create a new profile', async () => {
       const createDto: CreateProfileDto = {
-        type: ProfileType.Personal,
+        type: ProfileType.Person,
         name: 'John Doe',
         phone: '1234567890',
         email: 'john@example.com',
@@ -79,7 +79,7 @@ describe('ProfilesService', () => {
 
     it('should handle profile creation errors', async () => {
       const createDto: CreateProfileDto = {
-        type: ProfileType.Personal,
+        type: ProfileType.Person,
         name: 'John Doe',
         email: 'john@example.com',
       };

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions } from 'typeorm';
+import { Repository, FindManyOptions, FindOneOptions, ILike } from 'typeorm';
 import { Business } from '@finance-manager/db';
 import { CreateBusinessDto, BusinessResponseDto, PaginatedResultDto } from '@finance-manager/dto';
 import { PaginatedRequestDto } from '@finance-manager/dto';
@@ -29,8 +29,8 @@ export class BusinessesRepository {
 
     if (search) {
       options.where = [
-        { name: { $ilike: `%${search}%` } },
-        { description: { $ilike: `%${search}%` } },
+        { name: ILike(`%${search}%`) },
+        { description: ILike(`%${search}%`) },
       ];
     }
 
@@ -110,15 +110,10 @@ export class BusinessesRepository {
       id: business.id,
       name: business.name,
       description: business.description || '',
-      industry: business.industry,
-      establishedDate: business.establishedDate,
-      contactEmail: business.contactEmail || '',
-      contactPhone: business.contactPhone || '',
-      address: business.address || '',
-      taxId: business.taxId || '',
-      currency: business.currency,
-      createdAt: business.createdAt,
-      updatedAt: business.updatedAt,
+      logoUrl: business.logoUrl || '',
+      isActive: business.isActive,
+      createdAt: business.createdAt.toISOString(),
+      updatedAt: business.updatedAt.toISOString(),
     };
   }
 }
