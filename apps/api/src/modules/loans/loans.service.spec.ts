@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoansService } from './loans.service';
 import { LoansRepository } from './loans.repository';
 import { CreateLoanDto, LoanResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
+import { LoanStatus } from '@finance-manager/types';
 
 describe('LoansService', () => {
   let service: LoansService;
@@ -18,22 +19,21 @@ describe('LoansService', () => {
 
   const mockLoanResponse: LoanResponseDto = {
     id: 'loan-1',
-    profileId: 'profile-1',
-    amount: 1000000,
-    interestRate: 500,
-    startDate: new Date('2023-01-01'),
-    endDate: new Date('2024-01-01'),
-    type: 'personal',
-    status: 'active',
-    monthlyPayment: 85607,
-    remainingBalance: 85607,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
+    type: 'taken',
+    principalAmount: 1000000,
+    startDate: '2023-01-01',
+    dueDate: '2024-01-01',
+    lenderProfileId: 'profile-1',
+    borrowerProfileId: 'profile-1',
+    paidAmount: 150000,
+    status: LoanStatus.Active,
+    createdAt: '2023-01-01T10:00:00Z',
+    updatedAt: '2023-01-01T10:00:00Z',
+    deletedAt: undefined,
   };
 
   const mockPaginatedResult: PaginatedResultDto<LoanResponseDto> = {
-    data: [mockLoanResponse],
+    items: [mockLoanResponse],
     total: 1,
     page: 1,
     limit: 10,
@@ -61,15 +61,13 @@ describe('LoansService', () => {
   describe('create', () => {
     it('should create a new loan', async () => {
       const createDto: CreateLoanDto = {
-        profileId: 'profile-1',
-        amount: 1000000,
-        interestRate: 500,
-        startDate: new Date('2023-01-01'),
-        endDate: new Date('2024-01-01'),
-        type: 'personal',
-        status: 'active',
-        monthlyPayment: 85607,
-        remainingBalance: 85607,
+        type: 'taken',
+        principalAmount: 1000000,
+        startDate: '2023-01-01',
+        dueDate: '2024-01-01',
+        lenderProfileId: 'profile-1',
+        borrowerProfileId: 'profile-1',
+        description: 'Personal loan',
       };
 
       mockLoansRepository.create.mockResolvedValue(mockLoanResponse);
@@ -83,15 +81,13 @@ describe('LoansService', () => {
 
     it('should handle loan creation errors', async () => {
       const createDto: CreateLoanDto = {
-        profileId: 'profile-1',
-        amount: 1000000,
-        interestRate: 500,
-        startDate: new Date('2023-01-01'),
-        endDate: new Date('2024-01-01'),
-        type: 'personal',
-        status: 'active',
-        monthlyPayment: 85607,
-        remainingBalance: 85607,
+        type: 'taken',
+        principalAmount: 1000000,
+        startDate: '2023-01-01',
+        dueDate: '2024-01-01',
+        lenderProfileId: 'profile-1',
+        borrowerProfileId: 'profile-1',
+        description: 'Personal loan',
       };
 
       mockLoansRepository.create.mockRejectedValue(new Error('Creation failed'));
@@ -105,9 +101,7 @@ describe('LoansService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       mockLoansRepository.findAll.mockResolvedValue(mockPaginatedResult);
@@ -115,7 +109,7 @@ describe('LoansService', () => {
       const result = await service.findAll(query);
 
       expect(result).toBeDefined();
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
@@ -126,13 +120,11 @@ describe('LoansService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       const emptyResult: PaginatedResultDto<LoanResponseDto> = {
-        data: [],
+        items: [],
         total: 0,
         page: 1,
         limit: 10,
@@ -142,7 +134,7 @@ describe('LoansService', () => {
 
       const result = await service.findAll(query);
 
-      expect(result.data).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
   });
@@ -170,26 +162,24 @@ describe('LoansService', () => {
   describe('update', () => {
     it('should update an existing loan', async () => {
       const updateDto: Partial<CreateLoanDto> = {
-        status: 'paid',
-        remainingBalance: 0,
+        description: 'Loan fully repaid',
       };
 
-      const updatedResponse = { ...mockLoanResponse, ...updateDto };
+      const updatedResponse = { ...mockLoanResponse, description: 'Loan fully repaid' };
 
       mockLoansRepository.update.mockResolvedValue(updatedResponse);
 
       const result = await service.update('loan-1', updateDto);
 
       expect(result).toBeDefined();
-      expect(result.status).toBe('paid');
-      expect(result.remainingBalance).toBe(0);
+      expect(result.description).toBe('Loan fully repaid');
       expect(mockLoansRepository.update).toHaveBeenCalledWith('loan-1', updateDto);
     });
 
     it('should return null when loan not found', async () => {
       mockLoansRepository.update.mockResolvedValue(null);
 
-      const result = await service.update('non-existent-id', { status: 'paid' });
+      const result = await service.update('non-existent-id', { description: 'Test' });
 
       expect(result).toBeNull();
     });
@@ -251,9 +241,7 @@ describe('LoansService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       await expect(service.findAll(query)).rejects.toThrow('Database error');

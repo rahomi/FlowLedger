@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProfilesService } from './profiles.service';
 import { ProfilesRepository } from './profiles.repository';
 import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
+import { ProfileType } from '@finance-manager/types';
 
 describe('ProfilesService', () => {
   let service: ProfilesService;
@@ -17,21 +18,20 @@ describe('ProfilesService', () => {
 
   const mockProfileResponse: ProfileResponseDto = {
     id: 'profile-1',
-    userId: 'user-1',
-    type: 'personal',
+    type: ProfileType.Personal,
     name: 'John Doe',
     phone: '1234567890',
     email: 'john@example.com',
     address: '123 Main St',
     description: 'Personal profile',
     notes: 'Test profile',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-15T10:00:00Z',
+    deletedAt: undefined,
   };
 
   const mockPaginatedResult: PaginatedResultDto<ProfileResponseDto> = {
-    data: [mockProfileResponse],
+    items: [mockProfileResponse],
     total: 1,
     page: 1,
     limit: 10,
@@ -59,8 +59,7 @@ describe('ProfilesService', () => {
   describe('create', () => {
     it('should create a new profile', async () => {
       const createDto: CreateProfileDto = {
-        userId: 'user-1',
-        type: 'personal',
+        type: ProfileType.Personal,
         name: 'John Doe',
         phone: '1234567890',
         email: 'john@example.com',
@@ -80,14 +79,9 @@ describe('ProfilesService', () => {
 
     it('should handle profile creation errors', async () => {
       const createDto: CreateProfileDto = {
-        userId: 'user-1',
-        type: 'personal',
+        type: ProfileType.Personal,
         name: 'John Doe',
-        phone: '1234567890',
         email: 'john@example.com',
-        address: '123 Main St',
-        description: 'Personal profile',
-        notes: 'Test profile',
       };
 
       mockProfilesRepository.create.mockRejectedValue(new Error('Creation failed'));
@@ -101,9 +95,7 @@ describe('ProfilesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       mockProfilesRepository.findAll.mockResolvedValue(mockPaginatedResult);
@@ -111,7 +103,7 @@ describe('ProfilesService', () => {
       const result = await service.findAll(query);
 
       expect(result).toBeDefined();
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
@@ -122,13 +114,11 @@ describe('ProfilesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       const emptyResult: PaginatedResultDto<ProfileResponseDto> = {
-        data: [],
+        items: [],
         total: 0,
         page: 1,
         limit: 10,
@@ -138,7 +128,7 @@ describe('ProfilesService', () => {
 
       const result = await service.findAll(query);
 
-      expect(result.data).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
   });
@@ -214,9 +204,7 @@ describe('ProfilesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       await expect(service.findAll(query)).rejects.toThrow('Database error');

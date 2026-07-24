@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsService } from './transactions.service';
 import { TransactionsRepository } from './transactions.repository';
 import { CreateTransactionDto, TransactionResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
+import { TransactionType } from '@finance-manager/types';
 
 describe('TransactionsService', () => {
   let service: TransactionsService;
@@ -20,17 +21,18 @@ describe('TransactionsService', () => {
     id: 'txn-1',
     profileId: 'profile-1',
     amount: 50000,
-    type: 'income',
+    type: TransactionType.Income,
     category: 'Salary',
-    date: new Date('2024-01-15'),
+    date: '2024-01-15',
     description: 'Monthly salary',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
+    isReconciled: false,
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-15T10:00:00Z',
+    deletedAt: undefined,
   };
 
   const mockPaginatedResult: PaginatedResultDto<TransactionResponseDto> = {
-    data: [mockTransactionResponse],
+    items: [mockTransactionResponse],
     total: 1,
     page: 1,
     limit: 10,
@@ -60,9 +62,9 @@ describe('TransactionsService', () => {
       const createDto: CreateTransactionDto = {
         profileId: 'profile-1',
         amount: 50000,
-        type: 'income',
+        type: TransactionType.Income,
         category: 'Salary',
-        date: new Date('2024-01-15'),
+        date: '2024-01-15',
         description: 'Monthly salary',
       };
 
@@ -79,9 +81,9 @@ describe('TransactionsService', () => {
       const createDto: CreateTransactionDto = {
         profileId: 'profile-1',
         amount: 50000,
-        type: 'income',
+        type: TransactionType.Income,
         category: 'Salary',
-        date: new Date('2024-01-15'),
+        date: '2024-01-15',
         description: 'Monthly salary',
       };
 
@@ -96,9 +98,7 @@ describe('TransactionsService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       mockTransactionsRepository.findAll.mockResolvedValue(mockPaginatedResult);
@@ -106,7 +106,7 @@ describe('TransactionsService', () => {
       const result = await service.findAll(query);
 
       expect(result).toBeDefined();
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
@@ -117,13 +117,11 @@ describe('TransactionsService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       const emptyResult: PaginatedResultDto<TransactionResponseDto> = {
-        data: [],
+        items: [],
         total: 0,
         page: 1,
         limit: 10,
@@ -133,7 +131,7 @@ describe('TransactionsService', () => {
 
       const result = await service.findAll(query);
 
-      expect(result.data).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
   });
@@ -246,9 +244,7 @@ describe('TransactionsService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       await expect(service.findAll(query)).rejects.toThrow('Database error');

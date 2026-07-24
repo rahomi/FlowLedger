@@ -18,21 +18,17 @@ describe('BusinessesService', () => {
 
   const mockBusinessResponse: BusinessResponseDto = {
     id: 'business-1',
-    profileId: 'profile-1',
     name: 'Acme Corp',
-    industry: 'Technology',
-    businessType: 'LLC',
-    taxId: '123456789',
-    foundedDate: new Date('2020-01-01'),
-    annualRevenue: 1000000,
-    employeesCount: 10,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
+    description: 'Technology company',
+    logoUrl: 'https://example.com/logo.png',
+    isActive: true,
+    createdAt: '2020-01-01T10:00:00Z',
+    updatedAt: '2020-01-01T10:00:00Z',
+    deletedAt: undefined,
   };
 
   const mockPaginatedResult: PaginatedResultDto<BusinessResponseDto> = {
-    data: [mockBusinessResponse],
+    items: [mockBusinessResponse],
     total: 1,
     page: 1,
     limit: 10,
@@ -60,14 +56,10 @@ describe('BusinessesService', () => {
   describe('create', () => {
     it('should create a new business', async () => {
       const createDto: CreateBusinessDto = {
-        profileId: 'profile-1',
         name: 'Acme Corp',
-        industry: 'Technology',
-        businessType: 'LLC',
-        taxId: '123456789',
-        foundedDate: new Date('2020-01-01'),
-        annualRevenue: 1000000,
-        employeesCount: 10,
+        description: 'Technology company',
+        logoUrl: 'https://example.com/logo.png',
+        isActive: true,
       };
 
       mockBusinessesRepository.create.mockResolvedValue(mockBusinessResponse);
@@ -81,14 +73,8 @@ describe('BusinessesService', () => {
 
     it('should handle business creation errors', async () => {
       const createDto: CreateBusinessDto = {
-        profileId: 'profile-1',
         name: 'Acme Corp',
-        industry: 'Technology',
-        businessType: 'LLC',
-        taxId: '123456789',
-        foundedDate: new Date('2020-01-01'),
-        annualRevenue: 1000000,
-        employeesCount: 10,
+        description: 'Technology company',
       };
 
       mockBusinessesRepository.create.mockRejectedValue(new Error('Creation failed'));
@@ -102,9 +88,7 @@ describe('BusinessesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       mockBusinessesRepository.findAll.mockResolvedValue(mockPaginatedResult);
@@ -112,7 +96,7 @@ describe('BusinessesService', () => {
       const result = await service.findAll(query);
 
       expect(result).toBeDefined();
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
@@ -123,13 +107,11 @@ describe('BusinessesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       const emptyResult: PaginatedResultDto<BusinessResponseDto> = {
-        data: [],
+        items: [],
         total: 0,
         page: 1,
         limit: 10,
@@ -139,7 +121,7 @@ describe('BusinessesService', () => {
 
       const result = await service.findAll(query);
 
-      expect(result.data).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
   });
@@ -167,8 +149,8 @@ describe('BusinessesService', () => {
   describe('update', () => {
     it('should update an existing business', async () => {
       const updateDto: Partial<CreateBusinessDto> = {
-        annualRevenue: 1200000,
-        employeesCount: 15,
+        description: 'Updated technology company',
+        isActive: false,
       };
 
       const updatedResponse = { ...mockBusinessResponse, ...updateDto };
@@ -178,15 +160,15 @@ describe('BusinessesService', () => {
       const result = await service.update('business-1', updateDto);
 
       expect(result).toBeDefined();
-      expect(result.annualRevenue).toBe(1200000);
-      expect(result.employeesCount).toBe(15);
+      expect(result.description).toBe('Updated technology company');
+      expect(result.isActive).toBe(false);
       expect(mockBusinessesRepository.update).toHaveBeenCalledWith('business-1', updateDto);
     });
 
     it('should return null when business not found', async () => {
       mockBusinessesRepository.update.mockResolvedValue(null);
 
-      const result = await service.update('non-existent-id', { annualRevenue: 1000000 });
+      const result = await service.update('non-existent-id', { description: 'Test' });
 
       expect(result).toBeNull();
     });
@@ -257,9 +239,7 @@ describe('BusinessesService', () => {
       const query: PaginatedRequestDto = {
         page: 1,
         limit: 10,
-        search: '',
         sort: 'createdAt',
-        order: 'DESC',
       };
 
       await expect(service.findAll(query)).rejects.toThrow('Database error');

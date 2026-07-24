@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions, Between } from 'typeorm';
+import { Repository, FindManyOptions, FindOneOptions, Between, ILike } from 'typeorm';
 import { Transaction } from '@finance-manager/db';
 import { CreateTransactionDto, TransactionResponseDto, PaginatedResultDto } from '@finance-manager/dto';
 import { PaginatedRequestDto } from '@finance-manager/dto';
@@ -29,13 +29,12 @@ export class TransactionsRepository {
 
     if (search) {
       options.where = [
-        { description: { $ilike: `%${search}%` } },
-        { notes: { $ilike: `%${search}%` } },
+        { description: ILike(`%${search}%`) },
       ];
     }
 
     if (type) {
-      options.where = { ...options.where, type };
+      options.where = { ...options.where, type: type as any };
     }
 
     if (category) {
@@ -127,17 +126,14 @@ export class TransactionsRepository {
   private mapToResponseDto(transaction: Transaction): TransactionResponseDto {
     return {
       id: transaction.id,
-      accountId: transaction.accountId,
-      accountType: transaction.accountType,
       type: transaction.type,
       amount: transaction.amount,
-      currency: transaction.currency,
-      date: transaction.date,
+      date: transaction.date.toISOString(),
       description: transaction.description,
       category: transaction.category,
-      notes: transaction.notes || '',
-      createdAt: transaction.createdAt,
-      updatedAt: transaction.updatedAt,
+      isReconciled: transaction.isReconciled,
+      createdAt: transaction.createdAt.toISOString(),
+      updatedAt: transaction.updatedAt.toISOString(),
     };
   }
 }
