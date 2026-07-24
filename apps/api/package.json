@@ -14,12 +14,17 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\""
   },
   "dependencies": {
+    "@finance-manager/db": "file:../../packages/db",
+    "@finance-manager/dto": "file:../../packages/dto",
+    "@finance-manager/types": "file:../../packages/types",
+    "@finance-manager/utils": "file:../../packages/utils",
     "@nestjs/common": "^10.3.0",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^10.3.0",
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/typeorm": "^10.0.2",
-    "class-validator": "^0.14.1",
     "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
@@ -46,7 +51,7 @@
     "ts-jest": "^29.1.2",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "tsconfig-build": "^4.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   }
 }

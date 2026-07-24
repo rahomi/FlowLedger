@@ -1,13 +1,34 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 
-@Controller('dashboard')
+@Controller('api/v1/dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get('overview')
-  getOverview(@Query('userId') userId: string): Promise<any> {
-    return this.dashboardService.getOverview(userId);
+  @Get()
+  getDashboardData(
+    @Query('userId') userId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<any> {
+    return this.dashboardService.getOverview(userId, { startDate, endDate });
+  }
+
+  @Get('trends')
+  getTrends(
+    @Query('userId') userId: string,
+    @Query('months') months: number = 6,
+  ): Promise<any> {
+    return this.dashboardService.getIncomeExpenseTrends(userId, months);
+  }
+
+  @Get('categories')
+  getCategoryBreakdown(
+    @Query('userId') userId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<any> {
+    return this.dashboardService.getCategoryBreakdown(userId, { startDate, endDate });
   }
 
   @Get('financial-health')

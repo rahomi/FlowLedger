@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@finance-manager/types": "workspace:*"
+    "@finance-manager/types": "file:../types"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",

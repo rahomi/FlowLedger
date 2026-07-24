@@ -13,7 +13,7 @@
     "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert"
   },
   "dependencies": {
-    "@finance-manager/types": "workspace:*",
+    "@finance-manager/types": "file:../types",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "typeorm": "^0.3.20",
