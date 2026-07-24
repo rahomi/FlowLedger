@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThan, LessThan } from 'typeorm';
+import { Repository, Between, MoreThan, LessThan, IsNull, In } from 'typeorm';
 import { Transaction } from '@finance-manager/db';
 import { Loan } from '@finance-manager/db';
 import { Business } from '@finance-manager/db';
@@ -55,15 +55,15 @@ export class DashboardService {
 
     // Get loan summary
     const [loansGiven, loansTaken] = await Promise.all([
-      this.loanRepository.count({ where: { type: 'given', deletedAt: null } }),
-      this.loanRepository.count({ where: { type: 'taken', deletedAt: null } }),
+      this.loanRepository.count({ where: { type: 'given', deletedAt: IsNull() } }),
+      this.loanRepository.count({ where: { type: 'taken', deletedAt: IsNull() } }),
     ]);
 
     // Get overdue loans
     const overdueLoans = await this.loanRepository.find({
       where: {
         status: LoanStatus.Overdue,
-        deletedAt: null,
+        deletedAt: IsNull(),
         dueDate: LessThan(new Date()),
       },
       relations: ['lenderProfile', 'borrowerProfile'],
@@ -71,7 +71,7 @@ export class DashboardService {
 
     // Get business count
     const businessCount = await this.businessRepository.count({
-      where: { deletedAt: null },
+      where: { deletedAt: IsNull() },
     });
 
     return {
@@ -137,15 +137,15 @@ export class DashboardService {
 
     const transactions = await this.transactionRepository.find({
       where: {
-        deletedAt: null,
+        deletedAt: IsNull(),
         date: Between(startDate, endDate),
-        type: [TransactionType.Income, TransactionType.Expense],
+        type: In([TransactionType.Income, TransactionType.Expense]),
       },
       order: { date: 'ASC' },
     });
 
     // Group by month
-    const monthlyData = {};
+    const monthlyData: Record<string, { income: number; expense: number; month: string }> = {};
     transactions.forEach(transaction => {
       const monthKey = `${transaction.date.getFullYear()}-${String(transaction.date.getMonth() + 1).padStart(2, '0')}`;
       if (!monthlyData[monthKey]) {
@@ -159,7 +159,7 @@ export class DashboardService {
     });
 
     // Convert to array and sort by month
-    const result = Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
+    const result = Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month));
 
     return {
       userId,
@@ -186,7 +186,7 @@ export class DashboardService {
     });
 
     // Group by category and type
-    const categoryData = {};
+    const categoryData: Record<string, { category: string; type: TransactionType; amount: number }> = {};
     transactions.forEach(transaction => {
       const key = `${transaction.type}-${transaction.category}`;
       if (!categoryData[key]) {
@@ -210,19 +210,19 @@ export class DashboardService {
     const [totalIncome, totalExpense, totalLoansGiven, totalLoansTaken] = await Promise.all([
       this.transactionRepository.sum('amount', {
         type: TransactionType.Income,
-        deletedAt: null,
+        deletedAt: IsNull(),
       }),
       this.transactionRepository.sum('amount', {
         type: TransactionType.Expense,
-        deletedAt: null,
+        deletedAt: IsNull(),
       }),
       this.loanRepository.sum('principalAmount', {
         type: 'given',
-        deletedAt: null,
+        deletedAt: IsNull(),
       }),
       this.loanRepository.sum('principalAmount', {
         type: 'taken',
-        deletedAt: null,
+        deletedAt: IsNull(),
       }),
     ]);
 
@@ -235,7 +235,7 @@ export class DashboardService {
     if (netIncome > 0) financialHealthScore += 30;
     if (debtToIncomeRatio < 0.3) financialHealthScore += 30;
     if (debtToIncomeRatio < 0.1) financialHealthScore += 20;
-    if (totalLoansGiven && totalLoansGiven > totalLoansTaken) financialHealthScore += 10;
+    if (totalLoansGiven && totalLoansTaken && totalLoansGiven > totalLoansTaken) financialHealthScore += 10;
 
     financialHealthScore = Math.min(100, Math.max(0, financialHealthScore));
 
@@ -278,7 +278,7 @@ export class DashboardService {
     const overdueLoans = await this.loanRepository.find({
       where: {
         status: LoanStatus.Overdue,
-        deletedAt: null,
+        deletedAt: IsNull(),
         dueDate: LessThan(today),
       },
       relations: ['lenderProfile', 'borrowerProfile'],
@@ -291,7 +291,7 @@ export class DashboardService {
     const upcomingLoans = await this.loanRepository.find({
       where: {
         status: LoanStatus.Active,
-        deletedAt: null,
+        deletedAt: IsNull(),
         dueDate: Between(today, upcomingDueDate),
       },
       relations: ['lenderProfile', 'borrowerProfile'],
@@ -303,7 +303,7 @@ export class DashboardService {
 
     const largeTransactions = await this.transactionRepository.find({
       where: {
-        deletedAt: null,
+        deletedAt: IsNull(),
         date: Between(sevenDaysAgo, today),
         amount: MoreThan(100000), // > $1000
       },

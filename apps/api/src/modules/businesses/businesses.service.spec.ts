@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BusinessesService } from './businesses.service';
 import { BusinessesRepository } from './businesses.repository';
-import { CreateBusinessDto, BusinessResponseDto, PaginatedResultDto } from '@finance-manager/dto';
-import { PaginatedRequestDto } from '@finance-manager/dto';
+import { CreateBusinessDto, BusinessResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
 
 describe('BusinessesService', () => {
   let service: BusinessesService;

@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsService } from './transactions.service';
 import { TransactionsRepository } from './transactions.repository';
-import { CreateTransactionDto, TransactionResponseDto, PaginatedResultDto } from '@finance-manager/dto';
-import { PaginatedRequestDto } from '@finance-manager/dto';
+import { CreateTransactionDto, TransactionResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
 
 describe('TransactionsService', () => {
   let service: TransactionsService;

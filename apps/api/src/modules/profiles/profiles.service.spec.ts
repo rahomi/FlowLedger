@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProfilesService } from './profiles.service';
 import { ProfilesRepository } from './profiles.repository';
-import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto } from '@finance-manager/dto';
-import { PaginatedRequestDto } from '@finance-manager/dto';
+import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
 
 describe('ProfilesService', () => {
   let service: ProfilesService;
