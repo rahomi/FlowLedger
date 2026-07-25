@@ -190,6 +190,7 @@ describe('ReportsService', () => {
     find: jest.fn().mockReturnValue([
       { id: 1, name: 'Test Business', revenue: 100000, expenses: 60000 },
     ]),
+    findOne: jest.fn().mockResolvedValue({ id: '1', name: 'Test Business' }),
   };
 
   const mockProfileRepository = {
@@ -313,6 +314,35 @@ describe('ReportsService', () => {
       expect(result.totalBudget).toBeDefined();
       expect(result.totalActual).toBeDefined();
       expect(result.variances).toBeDefined();
+    });
+  });
+
+  describe('generateExpenseReport', () => {
+    it('should generate an expense report grouped by category', async () => {
+      const result = await service.generateExpenseReport('2023-01-01', '2023-01-31');
+
+      expect(result.reportType).toBe('expense');
+      expect(result.businessId).toBeNull();
+      expect(result.totalExpense).toBe(8000);
+      expect(result.categories).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ category: 'Food', amount: 5000 }),
+          expect.objectContaining({ category: 'Education', amount: 2000 }),
+          expect.objectContaining({ category: 'Tax Payment', amount: 1000 }),
+        ])
+      );
+    });
+  });
+
+  describe('generateBusinessReport', () => {
+    it('should generate a business report for the requested date range', async () => {
+      const result = await service.generateBusinessReport('1', '2023-02-01', '2023-02-28');
+
+      expect(result.business).toEqual({ id: '1', name: 'Test Business' });
+      expect(result.income).toBe(20000);
+      expect(result.expense).toBe(8000);
+      expect(result.profitLoss).toBe(12000);
+      expect(result.transactionCount).toBe(2);
     });
   });
 });

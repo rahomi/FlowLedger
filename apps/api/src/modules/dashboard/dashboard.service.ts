@@ -7,6 +7,12 @@ import { Business } from '@finance-manager/db';
 import { Profile } from '@finance-manager/db';
 import { TransactionType, LoanStatus } from '@finance-manager/types';
 
+type MonthlyTrend = {
+  month: string;
+  income: number;
+  expense: number;
+};
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -130,10 +136,9 @@ export class DashboardService {
   }
 
   async getIncomeExpenseTrends(userId: string, months: number = 6): Promise<any> {
-    // Get trends for the last N months
+    const normalizedMonths = Number.isFinite(months) && months > 0 ? Math.floor(months) : 6;
     const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
+    const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - (normalizedMonths - 1), 1);
 
     const transactions = await this.transactionRepository.find({
       where: {
@@ -144,8 +149,7 @@ export class DashboardService {
       order: { date: 'ASC' },
     });
 
-    // Group by month
-    const monthlyData: Record<string, { income: number; expense: number; month: string }> = {};
+    const monthlyData: Record<string, MonthlyTrend> = {};
     transactions.forEach(transaction => {
       const monthKey = `${transaction.date.getFullYear()}-${String(transaction.date.getMonth() + 1).padStart(2, '0')}`;
       if (!monthlyData[monthKey]) {
@@ -158,8 +162,12 @@ export class DashboardService {
       }
     });
 
-    // Convert to array and sort by month
-    const result = Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month));
+    const result: MonthlyTrend[] = [];
+    for (let offset = 0; offset < normalizedMonths; offset += 1) {
+      const monthDate = new Date(startDate.getFullYear(), startDate.getMonth() + offset, 1);
+      const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+      result.push(monthlyData[monthKey] ?? { month: monthKey, income: 0, expense: 0 });
+    }
 
     return {
       userId,

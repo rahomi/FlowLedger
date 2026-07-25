@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestj
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto } from '@finance-manager/dto';
 import { PaginatedRequestDto } from '@finance-manager/dto';
+import { TransactionType } from '@finance-manager/types';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -20,6 +21,14 @@ export class ProfilesController {
   @Get(':id')
   findOne(@Param('id') id: string): Promise<ProfileResponseDto> {
     return this.profilesService.findOne(id);
+  }
+
+  @Get(':id/transactions')
+  getTransactions(
+    @Param('id') id: string,
+    @Query('type') type?: TransactionType,
+  ): Promise<any> {
+    return this.profilesService.getTransactions(id, type);
   }
 
   @Patch(':id')

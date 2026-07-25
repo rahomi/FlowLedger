@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProfilesService } from './profiles.service';
 import { ProfilesRepository } from './profiles.repository';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Transaction } from '@finance-manager/db';
 import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto, PaginatedRequestDto } from '@finance-manager/dto';
-import { ProfileType } from '@finance-manager/types';
+import { ProfileType, TransactionType } from '@finance-manager/types';
 
 describe('ProfilesService', () => {
   let service: ProfilesService;
@@ -14,6 +16,10 @@ describe('ProfilesService', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+  };
+
+  const mockTransactionRepository = {
+    find: jest.fn(),
   };
 
   const mockProfileResponse: ProfileResponseDto = {
@@ -44,6 +50,10 @@ describe('ProfilesService', () => {
         {
           provide: ProfilesRepository,
           useValue: mockProfilesRepository,
+        },
+        {
+          provide: getRepositoryToken(Transaction),
+          useValue: mockTransactionRepository,
         },
       ],
     }).compile();
@@ -178,6 +188,51 @@ describe('ProfilesService', () => {
       const result = await service.update('non-existent-id', { phone: '1234567890' });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('getTransactions', () => {
+    it('should list linked profile transactions', async () => {
+      mockTransactionRepository.find.mockResolvedValue([
+        {
+          id: 'txn-1',
+          type: TransactionType.Expense,
+          amount: 1250,
+          date: new Date('2024-01-15T00:00:00Z'),
+          category: 'Food',
+          description: 'Lunch',
+          businessId: null,
+          loanId: null,
+        },
+      ]);
+
+      const result = await service.getTransactions('profile-1');
+
+      expect(result.profileId).toBe('profile-1');
+      expect(result.type).toBeNull();
+      expect(result.transactions).toHaveLength(1);
+      expect(mockTransactionRepository.find).toHaveBeenCalledWith({
+        where: {
+          deletedAt: expect.any(Object),
+          profileId: 'profile-1',
+        },
+        order: { date: 'DESC' },
+      });
+    });
+
+    it('should filter linked transactions by type', async () => {
+      mockTransactionRepository.find.mockResolvedValue([]);
+
+      await service.getTransactions('profile-1', TransactionType.Income);
+
+      expect(mockTransactionRepository.find).toHaveBeenCalledWith({
+        where: {
+          deletedAt: expect.any(Object),
+          profileId: 'profile-1',
+          type: TransactionType.Income,
+        },
+        order: { date: 'DESC' },
+      });
     });
   });
 

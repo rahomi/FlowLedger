@@ -247,22 +247,34 @@ describe('DashboardService', () => {
   describe('getIncomeExpenseTrends', () => {
     it('should return income and expense trends for specified months', async () => {
       const months = 6;
+      const currentMonthIncome = {
+        ...mockTransactions[0],
+        date: new Date(),
+      };
+      const currentMonthExpense = {
+        ...mockTransactions[1],
+        date: new Date(),
+      };
+      const currentMonthBusinessIncome = {
+        ...mockTransactions[2],
+        date: new Date(),
+      };
 
       mockTransactionRepository.find.mockResolvedValue([
-        mockTransactions[0],
-        mockTransactions[1],
-        mockTransactions[2],
+        currentMonthIncome,
+        currentMonthExpense,
+        currentMonthBusinessIncome,
       ]);
 
       const result = await service.getIncomeExpenseTrends('user-1', months);
 
       expect(result).toBeDefined();
       expect(result.trends).toBeDefined();
-      expect(result.trends).toHaveLength(1); // One month in mock data
+      expect(result.trends).toHaveLength(6);
 
-      const trend = result.trends[0];
-      expect(trend.income).toBe(150000); // 50000 + 100000
-      expect(trend.expense).toBe(-20000);
+      const populatedTrend = result.trends.find((trend: any) => trend.income === 150000);
+      expect(populatedTrend).toBeDefined();
+      expect(populatedTrend.expense).toBe(-20000);
     });
 
     it('should handle empty transactions', async () => {
@@ -270,7 +282,8 @@ describe('DashboardService', () => {
 
       const result = await service.getIncomeExpenseTrends('user-1', 6);
 
-      expect(result.trends).toHaveLength(0);
+      expect(result.trends).toHaveLength(6);
+      expect(result.trends.every((trend: any) => trend.income === 0 && trend.expense === 0)).toBe(true);
     });
   });
 

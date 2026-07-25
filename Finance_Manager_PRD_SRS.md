@@ -274,8 +274,8 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 
 **Acceptance Criteria:**
 - [ ] Category breakdown chart on dashboard
-- [ ] Monthly expense report by category
-- [ ] Trend chart shows 6-month history
+- [x] Monthly expense report by category
+- [x] Trend chart shows 6-month history
 - [ ] Tap category to see related transactions
 
 ### US-5: Offline Recording
@@ -292,7 +292,7 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 > As a business owner, I want to export my business income and expenses so that I can file taxes.
 
 **Acceptance Criteria:**
-- [ ] Business report filters by date range
+- [x] Business report filters by date range
 - [ ] Export to CSV available
 - [ ] Export to PDF available
 - [ ] All transaction details included in export
@@ -301,8 +301,8 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 > As a user, I want to see all transactions with a specific vendor so that I can track my relationship.
 
 **Acceptance Criteria:**
-- [ ] Profile page lists all linked transactions
-- [ ] Filter by transaction type on profile page
+- [x] Profile page lists all linked transactions
+- [x] Filter by transaction type on profile page
 - [ ] Total amount sent/received per profile
 - [ ] Quick call/email from profile page
 

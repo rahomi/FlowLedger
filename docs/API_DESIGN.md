@@ -38,7 +38,8 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 |--------|------|-------------|
 | `GET` | `/profiles` | List/search profiles (`?q=` for name/email/phone). |
 | `POST` | `/profiles` | Create profile. |
-| `GET` | `/profiles/:id` | Profile details + linked transactions. |
+| `GET` | `/profiles/:id` | Profile details. |
+| `GET` | `/profiles/:id/transactions` | Linked transactions for a profile. Supports `?type=` filtering. |
 | `PATCH` | `/profiles/:id` | Update. |
 | `DELETE` | `/profiles/:id` | Soft delete. |
 
@@ -73,10 +74,10 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/reports/income` | Monthly income grouped by category. Supports `?businessId=` and date range params. |
-| `GET` | `/reports/expense` | Monthly expense grouped by category. |
+| `GET` | `/reports/expense` | Monthly expense grouped by category. Supports date range params and optional `?businessId=`. |
 | `GET` | `/reports/profit-loss` | Income vs expense per period. |
 | `GET` | `/reports/loans` | Loan overview (status, amounts). |
-| `GET` | `/reports/business/:id` | Business‑specific P&L. |
+| `GET` | `/reports/business/:id` | Business‑specific P&L filtered by `startDate` and `endDate`, including matching transactions. |
 | `GET` | `/reports/profile/:id` | Activity for a profile. |
 | `GET` | `/reports/export` | Export any report to `format=pdf|csv`. Query mirrors the specific report endpoint plus `format`. |
 
@@ -84,7 +85,7 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/dashboard` | High‑level summary (balance, totals, loan overview). |
-| `GET` | `/dashboard/trends` | Income/expense trend series for the last N months. |
+| `GET` | `/dashboard/trends` | Income/expense trend series for the last N months, zero-filling months with no activity. |
 | `GET` | `/dashboard/categories` | Category breakdown for the selected date range. |
 | `GET` | `/dashboard/sync-status` | Current sync state (`idle`, `pending`, `error`). |
 

@@ -9,6 +9,8 @@ export interface PaginatedRequestDto {
   endDate?: string;
   type?: string;
   category?: string;
+  businessId?: string;
+  status?: string;
 }
 
 export interface PaginatedResultDto<T> {

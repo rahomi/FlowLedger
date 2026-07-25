@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThan, In } from 'typeorm';
+import { Repository, Between, LessThan, In, IsNull } from 'typeorm';
 import { Transaction } from '@finance-manager/db';
 import { Loan } from '@finance-manager/db';
 import { Business } from '@finance-manager/db';
@@ -329,6 +329,81 @@ export class ReportsService {
       totalBudget: budgetCategories.reduce((sum, bc) => sum + bc.budgetAmount, 0),
       totalActual: actualSpending.reduce((sum, as) => sum + as.amount, 0),
       overallVariance: variances.reduce((sum, v) => sum + v.varianceAmount, 0),
+    };
+  }
+
+  async generateExpenseReport(startDate: string, endDate: string, businessId?: string): Promise<any> {
+    const whereConditions: any = {
+      deletedAt: IsNull(),
+      type: TransactionType.Expense,
+      date: Between(new Date(startDate), new Date(endDate)),
+    };
+
+    if (businessId) {
+      whereConditions.business = { id: businessId };
+    }
+
+    const transactions = await this.transactionRepository.find({
+      where: whereConditions,
+      order: { date: 'ASC' },
+      relations: ['business'],
+    });
+
+    const categories = transactions.reduce<Record<string, number>>((accumulator, transaction) => {
+      accumulator[transaction.category] = (accumulator[transaction.category] || 0) + transaction.amount;
+      return accumulator;
+    }, {});
+
+    return {
+      reportType: 'expense',
+      period: { startDate, endDate },
+      businessId: businessId || null,
+      categories: Object.entries(categories).map(([category, amount]) => ({ category, amount })),
+      totalExpense: transactions.reduce((sum, transaction) => sum + transaction.amount, 0),
+    };
+  }
+
+  async generateBusinessReport(businessId: string, startDate: string, endDate: string): Promise<any> {
+    const business = await this.businessRepository.findOne({
+      where: { id: businessId, deletedAt: IsNull() },
+    });
+
+    const whereConditions: any = {
+      deletedAt: IsNull(),
+      business: { id: businessId },
+      date: Between(new Date(startDate), new Date(endDate)),
+    };
+
+    const [income, expense, transactions] = await Promise.all([
+      this.transactionRepository.sum('amount', {
+        ...whereConditions,
+        type: TransactionType.Income,
+      }),
+      this.transactionRepository.sum('amount', {
+        ...whereConditions,
+        type: TransactionType.Expense,
+      }),
+      this.transactionRepository.find({
+        where: whereConditions,
+        order: { date: 'ASC' },
+      }),
+    ]);
+
+    return {
+      business: business ? { id: business.id, name: business.name } : { id: businessId, name: null },
+      period: { startDate, endDate },
+      income: income || 0,
+      expense: expense || 0,
+      profitLoss: (income || 0) - (expense || 0),
+      transactionCount: transactions.length,
+      transactions: transactions.map(transaction => ({
+        id: transaction.id,
+        date: transaction.date,
+        type: transaction.type,
+        category: transaction.category,
+        description: transaction.description,
+        amount: transaction.amount,
+      })),
     };
   }
 }

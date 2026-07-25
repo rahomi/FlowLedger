@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 
 @Controller('api/v1/reports')
@@ -42,5 +42,23 @@ export class ReportsController {
     @Query('year') year: number,
   ): Promise<any> {
     return this.reportsService.generateBudgetReport(accountId, accountType, month, year);
+  }
+
+  @Get('expense')
+  generateExpenseReport(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('businessId') businessId?: string,
+  ): Promise<any> {
+    return this.reportsService.generateExpenseReport(startDate, endDate, businessId);
+  }
+
+  @Get('business/:id')
+  generateBusinessReport(
+    @Param('id') businessId: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ): Promise<any> {
+    return this.reportsService.generateBusinessReport(businessId, startDate, endDate);
   }
 }
