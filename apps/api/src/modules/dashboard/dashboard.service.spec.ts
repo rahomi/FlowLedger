@@ -321,6 +321,32 @@ describe('DashboardService', () => {
 
       expect(result.categories).toHaveLength(2); // Salary and Rent
     });
+
+    it('should return transactions for a selected category and type', async () => {
+      mockTransactionRepository.find.mockResolvedValue([mockTransactions[0]]);
+
+      const result = await service.getCategoryTransactions(
+        'user-1',
+        'Salary',
+        TransactionType.Income,
+        { startDate: '2024-01-01', endDate: '2024-01-31' },
+      );
+
+      expect(result.category).toBe('Salary');
+      expect(result.type).toBe(TransactionType.Income);
+      expect(result.transactionCount).toBe(1);
+      expect(result.transactions).toHaveLength(1);
+      expect(mockTransactionRepository.find).toHaveBeenCalledWith({
+        where: {
+          deletedAt: expect.any(Object),
+          type: TransactionType.Income,
+          category: 'Salary',
+          date: expect.any(Object),
+        },
+        order: { date: 'DESC' },
+        relations: ['profile', 'business'],
+      });
+    });
   });
 
   describe('getFinancialHealth', () => {

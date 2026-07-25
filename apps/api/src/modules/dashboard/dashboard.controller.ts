@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
+import { TransactionType } from '@finance-manager/types';
 
 @Controller('api/v1/dashboard')
 export class DashboardController {
@@ -29,6 +30,17 @@ export class DashboardController {
     @Query('endDate') endDate?: string,
   ): Promise<any> {
     return this.dashboardService.getCategoryBreakdown(userId, { startDate, endDate });
+  }
+
+  @Get('categories/transactions')
+  getCategoryTransactions(
+    @Query('userId') userId: string,
+    @Query('category') category: string,
+    @Query('type') type: TransactionType,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<any> {
+    return this.dashboardService.getCategoryTransactions(userId, category, type, { startDate, endDate });
   }
 
   @Get('financial-health')

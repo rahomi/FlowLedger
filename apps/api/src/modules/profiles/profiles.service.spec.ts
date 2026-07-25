@@ -210,6 +210,7 @@ describe('ProfilesService', () => {
 
       expect(result.profileId).toBe('profile-1');
       expect(result.type).toBeNull();
+      expect(result.totals).toEqual({ totalSent: 1250, totalReceived: 0 });
       expect(result.transactions).toHaveLength(1);
       expect(mockTransactionRepository.find).toHaveBeenCalledWith({
         where: {
@@ -233,6 +234,45 @@ describe('ProfilesService', () => {
         },
         order: { date: 'DESC' },
       });
+    });
+
+    it('should calculate total sent and received across linked transactions', async () => {
+      mockTransactionRepository.find.mockResolvedValue([
+        {
+          id: 'txn-1',
+          type: TransactionType.Income,
+          amount: 5000,
+          date: new Date('2024-01-10T00:00:00Z'),
+          category: 'Salary',
+          description: 'Paycheck',
+          businessId: null,
+          loanId: null,
+        },
+        {
+          id: 'txn-2',
+          type: TransactionType.RepaymentReceived,
+          amount: 1500,
+          date: new Date('2024-01-09T00:00:00Z'),
+          category: 'Loan',
+          description: 'Installment',
+          businessId: null,
+          loanId: 'loan-1',
+        },
+        {
+          id: 'txn-3',
+          type: TransactionType.Expense,
+          amount: 2200,
+          date: new Date('2024-01-08T00:00:00Z'),
+          category: 'Food',
+          description: 'Groceries',
+          businessId: null,
+          loanId: null,
+        },
+      ]);
+
+      const result = await service.getTransactions('profile-1');
+
+      expect(result.totals).toEqual({ totalSent: 2200, totalReceived: 6500 });
     });
   });
 

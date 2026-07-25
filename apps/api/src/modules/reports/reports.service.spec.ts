@@ -324,6 +324,13 @@ describe('ReportsService', () => {
       expect(result.reportType).toBe('expense');
       expect(result.businessId).toBeNull();
       expect(result.totalExpense).toBe(8000);
+      expect(result.transactions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 2, category: 'Food', amount: 5000 }),
+          expect.objectContaining({ id: 5, category: 'Education', amount: 2000 }),
+          expect.objectContaining({ id: 6, category: 'Tax Payment', amount: 1000 }),
+        ])
+      );
       expect(result.categories).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ category: 'Food', amount: 5000 }),
@@ -343,6 +350,35 @@ describe('ReportsService', () => {
       expect(result.expense).toBe(8000);
       expect(result.profitLoss).toBe(12000);
       expect(result.transactionCount).toBe(2);
+    });
+  });
+
+  describe('exportReport', () => {
+    it('should export the expense report as CSV with transaction details', async () => {
+      const result = await service.exportReport('expense', 'csv', {
+        startDate: '2023-01-01',
+        endDate: '2023-01-31',
+      });
+
+      expect(result.format).toBe('csv');
+      expect(result.mimeType).toBe('text/csv');
+      expect(result.fileName).toContain('expense-report-2023-01-01-2023-01-31.csv');
+      expect(result.content).toContain('"transactionId","date","type","category","description","amount"');
+      expect(result.content).toContain('"2","2023-01-20","expense","Food","","5000"');
+      expect(result.content).toContain('"5","2023-01-05","expense","Education","","2000"');
+    });
+
+    it('should export the business report as PDF', async () => {
+      const result = await service.exportReport('business', 'pdf', {
+        businessId: '1',
+        startDate: '2023-02-01',
+        endDate: '2023-02-28',
+      });
+
+      expect(result.format).toBe('pdf');
+      expect(result.mimeType).toBe('application/pdf');
+      expect(result.fileName).toContain('business-report-2023-02-01-2023-02-28.pdf');
+      expect(Buffer.from(result.contentBase64, 'base64').toString('utf8')).toContain('%PDF-1.4');
     });
   });
 });

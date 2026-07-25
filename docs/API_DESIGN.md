@@ -39,7 +39,7 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 | `GET` | `/profiles` | List/search profiles (`?q=` for name/email/phone). |
 | `POST` | `/profiles` | Create profile. |
 | `GET` | `/profiles/:id` | Profile details. |
-| `GET` | `/profiles/:id/transactions` | Linked transactions for a profile. Supports `?type=` filtering. |
+| `GET` | `/profiles/:id/transactions` | Linked transactions for a profile. Supports `?type=` filtering and returns `totals.totalSent` / `totals.totalReceived`. |
 | `PATCH` | `/profiles/:id` | Update. |
 | `DELETE` | `/profiles/:id` | Soft delete. |
 
@@ -79,7 +79,7 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 | `GET` | `/reports/loans` | Loan overview (status, amounts). |
 | `GET` | `/reports/business/:id` | Business‑specific P&L filtered by `startDate` and `endDate`, including matching transactions. |
 | `GET` | `/reports/profile/:id` | Activity for a profile. |
-| `GET` | `/reports/export` | Export any report to `format=pdf|csv`. Query mirrors the specific report endpoint plus `format`. |
+| `GET` | `/reports/export` | Export `expense` or `business` reports with `report=expense|business` and `format=pdf|csv`. Includes transaction detail rows; PDF content is returned as base64. |
 
 ### 2.7 Dashboard
 | Method | Path | Description |
@@ -87,6 +87,7 @@ All responses include `created_at` and `updated_at` timestamps in ISO 8601 UTC
 | `GET` | `/dashboard` | High‑level summary (balance, totals, loan overview). |
 | `GET` | `/dashboard/trends` | Income/expense trend series for the last N months, zero-filling months with no activity. |
 | `GET` | `/dashboard/categories` | Category breakdown for the selected date range. |
+| `GET` | `/dashboard/categories/transactions` | Drill down to matching transactions for a selected `category`, `type`, and optional date range. |
 | `GET` | `/dashboard/sync-status` | Current sync state (`idle`, `pending`, `error`). |
 
 ---

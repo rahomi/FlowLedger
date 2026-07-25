@@ -276,7 +276,7 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 - [ ] Category breakdown chart on dashboard
 - [x] Monthly expense report by category
 - [x] Trend chart shows 6-month history
-- [ ] Tap category to see related transactions
+- [x] Tap category to see related transactions
 
 ### US-5: Offline Recording
 > As a user, I want to record transactions without internet so that I can track expenses while traveling.
@@ -293,9 +293,9 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 
 **Acceptance Criteria:**
 - [x] Business report filters by date range
-- [ ] Export to CSV available
-- [ ] Export to PDF available
-- [ ] All transaction details included in export
+- [x] Export to CSV available
+- [x] Export to PDF available
+- [x] All transaction details included in export
 
 ### US-7: Contact Management
 > As a user, I want to see all transactions with a specific vendor so that I can track my relationship.
@@ -303,7 +303,7 @@ Build a fast, simple, and offline-first finance tracking application that empowe
 **Acceptance Criteria:**
 - [x] Profile page lists all linked transactions
 - [x] Filter by transaction type on profile page
-- [ ] Total amount sent/received per profile
+- [x] Total amount sent/received per profile
 - [ ] Quick call/email from profile page
 
 ### US-8: Loan Overdue Alert

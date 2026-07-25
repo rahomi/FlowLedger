@@ -179,14 +179,7 @@ export class DashboardService {
   async getCategoryBreakdown(userId: string, dateRange?: { startDate?: string; endDate?: string }): Promise<any> {
     const { startDate, endDate } = dateRange || {};
 
-    const whereConditions: any = {
-      deletedAt: null,
-      type: [TransactionType.Income, TransactionType.Expense],
-    };
-
-    if (startDate && endDate) {
-      whereConditions.date = Between(new Date(startDate), new Date(endDate));
-    }
+    const whereConditions = this.buildCategoryTransactionWhere(startDate, endDate);
 
     const transactions = await this.transactionRepository.find({
       where: whereConditions,
@@ -210,6 +203,51 @@ export class DashboardService {
       userId,
       period: { startDate, endDate },
       categories: result,
+    };
+  }
+
+  async getCategoryTransactions(
+    userId: string,
+    category: string,
+    type: TransactionType,
+    dateRange?: { startDate?: string; endDate?: string },
+  ): Promise<any> {
+    const { startDate, endDate } = dateRange || {};
+    const whereConditions = this.buildCategoryTransactionWhere(startDate, endDate, category, type);
+
+    const transactions = await this.transactionRepository.find({
+      where: whereConditions,
+      order: { date: 'DESC' },
+      relations: ['profile', 'business'],
+    });
+
+    return {
+      userId,
+      period: { startDate, endDate },
+      category,
+      type,
+      transactionCount: transactions.length,
+      transactions: transactions.map(transaction => ({
+        id: transaction.id,
+        type: transaction.type,
+        amount: transaction.amount,
+        date: transaction.date,
+        category: transaction.category,
+        description: transaction.description,
+        profile: transaction.profile
+          ? {
+              id: transaction.profile.id,
+              name: transaction.profile.name,
+              type: transaction.profile.type,
+            }
+          : null,
+        business: transaction.business
+          ? {
+              id: transaction.business.id,
+              name: transaction.business.name,
+            }
+          : null,
+      })),
     };
   }
 
@@ -277,6 +315,28 @@ export class DashboardService {
     }
 
     return recommendations;
+  }
+
+  private buildCategoryTransactionWhere(
+    startDate?: string,
+    endDate?: string,
+    category?: string,
+    type?: TransactionType,
+  ): any {
+    const whereConditions: any = {
+      deletedAt: IsNull(),
+      type: type ?? In([TransactionType.Income, TransactionType.Expense]),
+    };
+
+    if (category) {
+      whereConditions.category = category;
+    }
+
+    if (startDate && endDate) {
+      whereConditions.date = Between(new Date(startDate), new Date(endDate));
+    }
+
+    return whereConditions;
   }
 
   async getAlerts(userId: string): Promise<any> {

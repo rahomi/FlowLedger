@@ -7,6 +7,9 @@ import { Business } from '@finance-manager/db';
 import { Profile } from '@finance-manager/db';
 import { TransactionType, LoanStatus } from '@finance-manager/types';
 
+type ExportFormat = 'csv' | 'pdf';
+type ExportReportType = 'expense' | 'business';
+
 @Injectable()
 export class ReportsService {
   constructor(
@@ -360,6 +363,20 @@ export class ReportsService {
       businessId: businessId || null,
       categories: Object.entries(categories).map(([category, amount]) => ({ category, amount })),
       totalExpense: transactions.reduce((sum, transaction) => sum + transaction.amount, 0),
+      transactions: transactions.map(transaction => ({
+        id: transaction.id,
+        date: transaction.date,
+        type: transaction.type,
+        category: transaction.category,
+        description: transaction.description,
+        amount: transaction.amount,
+        business: transaction.business
+          ? {
+              id: transaction.business.id,
+              name: transaction.business.name,
+            }
+          : null,
+      })),
     };
   }
 
@@ -405,5 +422,145 @@ export class ReportsService {
         amount: transaction.amount,
       })),
     };
+  }
+
+  async exportReport(
+    report: ExportReportType,
+    format: ExportFormat,
+    options: { startDate: string; endDate: string; businessId?: string },
+  ): Promise<any> {
+    const reportData = report === 'business'
+      ? await this.generateBusinessReport(options.businessId!, options.startDate, options.endDate)
+      : await this.generateExpenseReport(options.startDate, options.endDate, options.businessId);
+
+    const exporter = format === 'pdf' ? this.createPdfExport.bind(this) : this.createCsvExport.bind(this);
+    const exportPayload = exporter(report, reportData);
+
+    return {
+      report,
+      format,
+      ...exportPayload,
+    };
+  }
+
+  private createCsvExport(report: ExportReportType, reportData: any): { fileName: string; mimeType: string; content: string } {
+    const details = this.getReportTransactions(reportData);
+    const summaryRows = report === 'business'
+      ? [
+          ['businessId', reportData.business.id],
+          ['businessName', reportData.business.name || ''],
+          ['income', String(reportData.income)],
+          ['expense', String(reportData.expense)],
+          ['profitLoss', String(reportData.profitLoss)],
+        ]
+      : [
+          ['businessId', reportData.businessId || ''],
+          ['totalExpense', String(reportData.totalExpense)],
+        ];
+
+    const lines = [
+      ['reportType', report],
+      ['startDate', reportData.period.startDate],
+      ['endDate', reportData.period.endDate],
+      ...summaryRows,
+      [],
+      ['transactionId', 'date', 'type', 'category', 'description', 'amount'],
+      ...details.map((transaction: any) => [
+        transaction.id,
+        this.formatDateValue(transaction.date),
+        transaction.type,
+        transaction.category,
+        transaction.description || '',
+        String(transaction.amount),
+      ]),
+    ];
+
+    return {
+      fileName: `${report}-report-${reportData.period.startDate}-${reportData.period.endDate}.csv`,
+      mimeType: 'text/csv',
+      content: lines.map(columns => columns.map(value => this.escapeCsv(String(value ?? ''))).join(',')).join('\n'),
+    };
+  }
+
+  private createPdfExport(report: ExportReportType, reportData: any): { fileName: string; mimeType: string; contentBase64: string } {
+    const detailLines = this.getReportTransactions(reportData).map((transaction: any) => (
+      `${transaction.id} | ${this.formatDateValue(transaction.date)} | ${transaction.type} | ${transaction.category} | ${transaction.description || ''} | ${transaction.amount}`
+    ));
+
+    const summaryLines = report === 'business'
+      ? [
+          `Business: ${reportData.business.name || reportData.business.id}`,
+          `Income: ${reportData.income}`,
+          `Expense: ${reportData.expense}`,
+          `Profit/Loss: ${reportData.profitLoss}`,
+        ]
+      : [
+          `Business: ${reportData.businessId || 'all'}`,
+          `Total Expense: ${reportData.totalExpense}`,
+        ];
+
+    const pdfText = [
+      `${report.toUpperCase()} REPORT`,
+      `Period: ${reportData.period.startDate} to ${reportData.period.endDate}`,
+      ...summaryLines,
+      'Transactions:',
+      ...detailLines,
+    ];
+
+    return {
+      fileName: `${report}-report-${reportData.period.startDate}-${reportData.period.endDate}.pdf`,
+      mimeType: 'application/pdf',
+      contentBase64: this.buildMinimalPdf(pdfText),
+    };
+  }
+
+  private getReportTransactions(reportData: any): any[] {
+    return Array.isArray(reportData.transactions) ? reportData.transactions : [];
+  }
+
+  private formatDateValue(value: Date | string): string {
+    if (value instanceof Date) {
+      return value.toISOString().slice(0, 10);
+    }
+
+    return String(value).slice(0, 10);
+  }
+
+  private escapeCsv(value: string): string {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+
+  private buildMinimalPdf(lines: string[]): string {
+    const sanitizedLines = lines.map(line => line.replace(/\\/g, '\\\\').replace(/[()]/g, '\\$&'));
+    const textCommands = sanitizedLines
+      .map((line, index) => `1 0 0 1 40 ${760 - index * 18} Tm (${line}) Tj`)
+      .join('\n');
+    const stream = `BT\n/F1 12 Tf\n${textCommands}\nET`;
+
+    const objects = [
+      '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+      '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+      '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
+      '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+      `5 0 obj\n<< /Length ${Buffer.byteLength(stream, 'utf8')} >>\nstream\n${stream}\nendstream\nendobj\n`,
+    ];
+
+    let pdf = '%PDF-1.4\n';
+    const offsets = [0];
+
+    for (const object of objects) {
+      offsets.push(Buffer.byteLength(pdf, 'utf8'));
+      pdf += object;
+    }
+
+    const xrefOffset = Buffer.byteLength(pdf, 'utf8');
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += '0000000000 65535 f \n';
+    for (let index = 1; index < offsets.length; index += 1) {
+      pdf += `${String(offsets[index]).padStart(10, '0')} 00000 n \n`;
+    }
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    return Buffer.from(pdf, 'utf8').toString('base64');
   }
 }

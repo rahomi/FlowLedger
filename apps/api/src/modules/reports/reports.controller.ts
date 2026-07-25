@@ -61,4 +61,15 @@ export class ReportsController {
   ): Promise<any> {
     return this.reportsService.generateBusinessReport(businessId, startDate, endDate);
   }
+
+  @Get('export')
+  exportReport(
+    @Query('report') report: 'expense' | 'business',
+    @Query('format') format: 'csv' | 'pdf',
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('businessId') businessId?: string,
+  ): Promise<any> {
+    return this.reportsService.exportReport(report, format, { startDate, endDate, businessId });
+  }
 }

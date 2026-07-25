@@ -7,6 +7,18 @@ import { CreateProfileDto, ProfileResponseDto, PaginatedResultDto } from '@finan
 import { PaginatedRequestDto } from '@finance-manager/dto';
 import { TransactionType } from '@finance-manager/types';
 
+const SENT_TRANSACTION_TYPES = new Set<TransactionType>([
+  TransactionType.Expense,
+  TransactionType.LoanGiven,
+  TransactionType.RepaymentMade,
+]);
+
+const RECEIVED_TRANSACTION_TYPES = new Set<TransactionType>([
+  TransactionType.Income,
+  TransactionType.LoanTaken,
+  TransactionType.RepaymentReceived,
+]);
+
 @Injectable()
 export class ProfilesService {
   constructor(
@@ -42,9 +54,25 @@ export class ProfilesService {
       order: { date: 'DESC' },
     });
 
+    const totals = transactions.reduce(
+      (summary, transaction) => {
+        if (SENT_TRANSACTION_TYPES.has(transaction.type)) {
+          summary.totalSent += transaction.amount;
+        }
+
+        if (RECEIVED_TRANSACTION_TYPES.has(transaction.type)) {
+          summary.totalReceived += transaction.amount;
+        }
+
+        return summary;
+      },
+      { totalSent: 0, totalReceived: 0 },
+    );
+
     return {
       profileId: id,
       type: type || null,
+      totals,
       transactions: transactions.map(transaction => ({
         id: transaction.id,
         type: transaction.type,
